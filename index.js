@@ -5,6 +5,10 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT;
 
+app.listen(port, () => {
+  console.log(`App listening on port ${port}`);
+});
+
 const {
   SHOPIFY_API_KEY,
   SHOPIFY_API_SECRET,
