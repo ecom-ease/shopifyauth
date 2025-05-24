@@ -5,10 +5,6 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT;
 
-app.listen(port, () => {
-  console.log(`App listening on port ${port}`);
-});
-
 const {
   SHOPIFY_API_KEY,
   SHOPIFY_API_SECRET,
@@ -52,6 +48,7 @@ app.get("/auth/callback", async (req, res) => {
   }
 });
 
-
+// ✅ This should only appear once
+app.listen(port, () => {
+  console.log(`App listening on port ${port}`);
 });
-// trigger redeploy
