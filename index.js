@@ -3,7 +3,7 @@ const axios = require("axios");
 require("dotenv").config();
 
 const app = express();
-const port = process.env.PORT;
+const port = 3000;
 
 const {
   SHOPIFY_API_KEY,
