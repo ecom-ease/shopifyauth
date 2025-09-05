@@ -3,7 +3,8 @@ const axios = require("axios");
 require("dotenv").config();
 
 const app = express();
-const port = process.env.PORT || 3000; // 👈 use Railway's port if provided
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`App listening on port ${port}`));
 
 const {
   SHOPIFY_API_KEY,
