@@ -4,33 +4,35 @@ require("dotenv").config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`App listening on port ${port}`));
 
-const {
-  SHOPIFY_API_KEY,
-  SHOPIFY_API_SECRET,
-  SCOPES,
-  HOST
-} = process.env;
+// Simple request log (helps debug in Railway logs)
+app.use((req, _res, next) => {
+  console.log(new Date().toISOString(), req.method, req.url);
+  next();
+});
 
-app.get("/", (req, res) => {
+// Healthcheck endpoint for Railway
+app.get("/health", (_req, res) => res.status(200).send("ok"));
+
+// ---- ENV ----
+const { SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SCOPES, HOST } = process.env;
+
+// ---- ROUTES ----
+app.get("/", (_req, res) => {
   res.send("Shopify OAuth backend is running.");
 });
 
-// 🔄 UPDATED /auth ROUTE
 app.get("/auth", (req, res) => {
   const shop = req.query.shop;
   if (!shop) return res.status(400).send("Missing shop parameter");
 
-  // Trim env var to avoid hidden spaces/newlines
   const base = (HOST || "").trim();
   if (!/^https?:\/\//i.test(base)) {
-    return res.status(500).send(
-      "HOST must include scheme, e.g. https://your-app.up.railway.app"
-    );
+    return res
+      .status(500)
+      .send("HOST must include scheme, e.g. https://your-app.up.railway.app");
   }
 
-  // Clean up scopes (remove whitespace/newlines)
   const scopes = (SCOPES || "")
     .split(",")
     .map((s) => s.trim())
@@ -44,13 +46,12 @@ app.get("/auth", (req, res) => {
     `&scope=${encodeURIComponent(scopes)}` +
     `&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
-  console.log("Install URL:", installUrl); // 👈 helpful for debugging
+  console.log("Install URL:", installUrl);
   return res.redirect(installUrl);
 });
 
 app.get("/auth/callback", async (req, res) => {
   const { shop, code } = req.query;
-
   if (!shop || !code) return res.status(400).send("Missing parameters");
 
   try {
@@ -62,10 +63,8 @@ app.get("/auth/callback", async (req, res) => {
         code,
       }
     );
-
     const accessToken = tokenResponse.data.access_token;
     console.log(`Access token for ${shop}:`, accessToken);
-
     res.send("App installed successfully. Access token logged on server.");
   } catch (error) {
     console.error(
@@ -76,7 +75,8 @@ app.get("/auth/callback", async (req, res) => {
   }
 });
 
-// ✅ This should only appear once
-app.listen(port, () => {
+// ---- SINGLE listen (do NOT duplicate) ----
+app.listen(port, "0.0.0.0", () => {
   console.log(`App listening on port ${port}`);
 });
+
